@@ -7,9 +7,12 @@ namespace ProductStore.Models
 
         public ProductRepository()
         {
-            Add(new Product { Name = "Tomato soup", Category = "Groceries", Price = 1.39M });
-            Add(new Product { Name = "Yo-yo", Category = "Toys", Price = 3.75M });
-            Add(new Product { Name = "Hammer", Category = "Hardware", Price = 16.99M });
+           
+            Add(new Product { Name = "Product A", Description = "product description", Category = "Product", Price = 275.00M, Stock = 10 });
+            Add(new Product { Name = "Product B", Description = "product description", Category = "Product", Price = 150.00M, Stock = 5 });
+            Add(new Product { Name = "Product C", Description = "product description", Category = "Product", Price = 50.00M, Stock = 20 });
+
+            
         }
 
         public IEnumerable<Product> GetAll()
@@ -17,7 +20,7 @@ namespace ProductStore.Models
             return products;
         }
 
-        public Product Get(int id)
+        public Product? Get(int id)
         {
             return products.Find(p => p.Id == id);
         }
