@@ -1,47 +1,46 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MongoDB.Driver;
 using ProductStore.Models;
-using Swashbuckle.AspNetCore.Swagger;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
-
 // Adiciona os serviços ao container.
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configuração do MongoDB
+var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
+
+// Injeta o cliente e o banco de dados do MongoDB
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoDbSettings?.ConnectionString));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings?.DatabaseName));
+
+// Adiciona a injeção de dependência dos repositórios
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
 
 var app = builder.Build();
 
+// Configura o pipeline de requisição HTTP.
 if (app.Environment.IsDevelopment())
 {
-    // Habilita o middleware do Swagger
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
-
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.MapControllers();
-
-app.UseRouting();
-
 app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.MapControllers();
 app.Run();
+
+// Classe para as configurações do MongoDB
+public class MongoDbSettings
+{
+    public string? ConnectionString { get; set; }
+    public string? DatabaseName { get; set; }
+}
