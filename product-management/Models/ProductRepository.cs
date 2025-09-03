@@ -21,11 +21,7 @@ namespace ProductStore.Models
 
         public Product? Get(string id)
         {
-            if (!ObjectId.TryParse(id, out var objectId))
-            {
-                return null;
-            }
-            return _products.Find(p => p.Id == objectId).FirstOrDefault();
+            return _products.Find(p => p.Id == id).FirstOrDefault();
         }
 
         public Product Add(Product item)
@@ -36,11 +32,7 @@ namespace ProductStore.Models
 
         public void Remove(string id)
         {
-            if (!ObjectId.TryParse(id, out var objectId))
-            {
-                return;
-            }
-            _products.DeleteOne(p => p.Id == objectId);
+            _products.DeleteOne(p => p.Id == id);
         }
 
         public bool Update(Product item)

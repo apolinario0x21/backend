@@ -38,13 +38,13 @@ public class CategoriesController : ControllerBase
             return BadRequest();
         }
         item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetById), new { id = item.Id.ToString() }, item);
+        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
     }
 
     [HttpPut("{id}")]
     public IActionResult Update(string id, Category item)
     {
-        if (item == null || item.Id.ToString() != id)
+        if (item == null || item.Id != id)
         {
             return BadRequest();
         }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ProductStore.Models
 {
     public interface ICategoryRepository

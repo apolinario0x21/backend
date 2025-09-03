@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductStore.Models;
 using System.Collections.Generic;
+using System.Linq;
 using MongoDB.Bson;
 
 [ApiController]
@@ -21,7 +22,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Product> GetProduct(string id) 
+    public ActionResult<Product> GetProduct(string id)
     {
         Product? item = _repository.Get(id);
         if (item == null)
@@ -31,31 +32,24 @@ public class ProductsController : ControllerBase
         return Ok(item);
     }
     
-
-   [HttpPut("{id}")]
-public IActionResult PutProduct(string id, [FromBody] Product product)
-{
-    // Tenta converter o ID da rota para um ObjectId
-    if (!ObjectId.TryParse(id, out ObjectId objectId))
+    [HttpPut("{id}")]
+    public IActionResult PutProduct(string id, Product product)
     {
-        return BadRequest();
+        if (product.Id == null || id != product.Id)
+        {
+            return BadRequest();
+        }
+        
+        if (!_repository.Update(product))
+        {
+            return NotFound();
+        }
+        
+        return NoContent();
     }
-
-    if (product.Id != objectId)
-    {
-        return BadRequest();
-    }
-
-    if (!_repository.Update(product))
-    {
-        return NotFound();
-    }
-
-    return NoContent();
-}
     
     [HttpDelete("{id}")]
-    public IActionResult DeleteProduct(string id) 
+    public IActionResult DeleteProduct(string id)
     {
         Product? item = _repository.Get(id);
         if (item == null)
@@ -71,7 +65,7 @@ public IActionResult PutProduct(string id, [FromBody] Product product)
     public ActionResult<Product> PostProduct(Product item)
     {
         item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetProduct), new { id = item.Id.ToString() }, item);
+        return CreatedAtAction(nameof(GetProduct), new { id = item.Id }, item);
     }
     
     [HttpGet("category/{category}")]

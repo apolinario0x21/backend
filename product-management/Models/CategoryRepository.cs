@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace ProductStore.Models
@@ -21,11 +20,7 @@ namespace ProductStore.Models
 
         public Category? Get(string id)
         {
-            if (!ObjectId.TryParse(id, out var objectId))
-            {
-                return null;
-            }
-            return _categories.Find(p => p.Id == objectId).FirstOrDefault();
+            return _categories.Find(p => p.Id == id).FirstOrDefault();
         }
 
         public Category Add(Category item)
@@ -36,11 +31,7 @@ namespace ProductStore.Models
 
         public void Remove(string id)
         {
-            if (!ObjectId.TryParse(id, out var objectId))
-            {
-                return;
-            }
-            _categories.DeleteOne(p => p.Id == objectId);
+            _categories.DeleteOne(p => p.Id == id);
         }
 
         public bool Update(Category item)
