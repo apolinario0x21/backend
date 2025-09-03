@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using ProductStore.Models; 
+using ProductStore.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -14,35 +17,33 @@ public class DashboardController : ControllerBase
         _categoryRepository = categoryRepository;
     }
 
-    [HttpGet("summary")]
-    public ActionResult<DashboardSummary> GetSummary()
+    [HttpGet]
+    public async Task<IActionResult> GetDashboardData()
     {
-        var products = _productRepository.GetAll();
+        var products = await _productRepository.GetAllAsync();
+        
         var totalProducts = products.Count();
-        var totalStockValue = products.Sum(p => p.Price * p.QuantityInStock);
-        var categories = _categoryRepository.GetAll();
 
-        var summary = new DashboardSummary
+        var totalStockValue = products.Sum(p => p.Price * p.QuantityInStock);
+
+        var lowStockProducts = products.Where(p => p.QuantityInStock < 10);
+        
+        var categories = await _categoryRepository.GetAllAsync();
+        
+        // Prepara os dados do gráfico
+        var productsByCategory = products
+            .GroupBy(p => p.Category)
+            .Select(g => new { Category = g.Key, Count = g.Count() })
+            .ToList();
+
+        var dashboardData = new
         {
             TotalProducts = totalProducts,
-            TotalCategories = categories.Count(),
-            TotalStockValue = totalStockValue
+            TotalStockValue = totalStockValue,
+            LowStockProducts = lowStockProducts,
+            ProductsByCategory = productsByCategory
         };
 
-        return Ok(summary);
+        return Ok(dashboardData);
     }
-    
-    [HttpGet("low-stock")]
-    public ActionResult<IEnumerable<Product>> GetLowStockProducts()
-    {
-        var lowStockProducts = _productRepository.GetAll().Where(p => p.QuantityInStock <= 10);
-        return Ok(lowStockProducts);
-    }
-}
-
-public class DashboardSummary
-{
-    public int TotalProducts { get; set; }
-    public int TotalCategories { get; set; }
-    public decimal TotalStockValue { get; set; }
 }

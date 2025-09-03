@@ -1,13 +1,18 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProductStore.Models
 {
     public interface IProductRepository
     {
-        IEnumerable<Product> GetAll();
-        Product? Get(string id);
-        Product Add(Product item);
-        void Remove(string id);
-        bool Update(Product item);
+        Task<IEnumerable<Product>> GetAllAsync();
+        
+        Task<Product?> GetAsync(string id);
+        
+        Task<Product> CreateProductAsync(Product item);
+
+        Task RemoveAsync(string id);
+        
+        Task<bool> UpdateAsync(Product item);
     }
 }

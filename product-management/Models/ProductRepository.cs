@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProductStore.Models
 {
@@ -15,35 +13,30 @@ namespace ProductStore.Models
             _products = database.GetCollection<Product>("Products");
         }
 
-        public IEnumerable<Product> GetAll()
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return _products.Find(_ => true).ToList();
+            return await _products.Find(_ => true).ToListAsync();
         }
 
-        public Product? Get(string id)
+        public async Task<Product?> GetAsync(string id)
         {
-            return _products.Find(p => p.Id == id).FirstOrDefault();
+            return await _products.Find(p => p.Id == id).FirstOrDefaultAsync();
         }
 
-        public Product Add(Product item)
+        public async Task<Product> CreateProductAsync(Product item)
         {
-            
-            if (string.IsNullOrEmpty(item.Id))
-            {
-                item.Id = ObjectId.GenerateNewId().ToString();
-            }
-            _products.InsertOne(item);
+            await _products.InsertOneAsync(item);
             return item;
         }
 
-        public void Remove(string id)
+        public async Task RemoveAsync(string id)
         {
-            _products.DeleteOne(p => p.Id == id);
+            await _products.DeleteOneAsync(p => p.Id == id);
         }
 
-        public bool Update(Product item)
+        public async Task<bool> UpdateAsync(Product item)
         {
-            var result = _products.ReplaceOne(p => p.Id == item.Id, item);
+            var result = await _products.ReplaceOneAsync(p => p.Id == item.Id, item);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
     }

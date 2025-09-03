@@ -3,6 +3,7 @@ using ProductStore.Models;
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,15 +17,15 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Product>> GetAllProducts()
+    public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
     {
-        return Ok(_repository.GetAll());
+        return Ok(await _repository.GetAllAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Product> GetProduct(string id)
+    public async Task<ActionResult<Product>> GetProduct(string id)
     {
-        Product? item = _repository.Get(id);
+        Product? item = await _repository.GetAsync(id);
         if (item == null)
         {
             return NotFound();
@@ -33,14 +34,14 @@ public class ProductsController : ControllerBase
     }
     
     [HttpPut("{id}")]
-    public IActionResult PutProduct(string id, Product product)
+    public async Task<IActionResult> PutProduct(string id, Product product)
     {
         if (product.Id == null || id != product.Id)
         {
             return BadRequest();
         }
         
-        if (!_repository.Update(product))
+        if (!await _repository.UpdateAsync(product))
         {
             return NotFound();
         }
@@ -49,29 +50,35 @@ public class ProductsController : ControllerBase
     }
     
     [HttpDelete("{id}")]
-    public IActionResult DeleteProduct(string id)
+    public async Task<IActionResult> DeleteProduct(string id)
     {
-        Product? item = _repository.Get(id);
+        Product? item = await _repository.GetAsync(id);
         if (item == null)
         {
             return NotFound();
         }
 
-        _repository.Remove(id);
+        await _repository.RemoveAsync(id);
         return NoContent();
     }
     
     [HttpPost]
-    public ActionResult<Product> PostProduct(Product item)
+    public async Task<IActionResult> Create(Product product)
     {
-        item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetProduct), new { id = item.Id }, item);
+        if (ModelState.IsValid)
+        {
+            await _repository.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+        }
+
+        return BadRequest(ModelState);
     }
     
     [HttpGet("category/{category}")]
-    public ActionResult<IEnumerable<Product>> GetProductsByCategory(string category)
+    public async Task<ActionResult<IEnumerable<Product>>> GetProductsByCategory(string category)
     {
-        return Ok(_repository.GetAll().Where(
+        var products = await _repository.GetAllAsync();
+        return Ok(products.Where(
             p => string.Equals(p.Category, category, StringComparison.OrdinalIgnoreCase)));
     }
 }

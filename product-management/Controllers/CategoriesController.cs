@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductStore.Models;
 using System.Collections.Generic;
-using System.Linq;
-using MongoDB.Bson;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -16,15 +15,15 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Category>> GetAll()
+    public async Task<ActionResult<IEnumerable<Category>>> GetAllCategories()
     {
-        return Ok(_repository.GetAll());
+        return Ok(await _repository.GetAllAsync());
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Category> GetById(string id)
+    public async Task<ActionResult<Category>> GetCategory(string id)
     {
-        var item = _repository.Get(id);
+        var item = await _repository.GetAsync(id);
         if (item == null)
         {
             return NotFound();
@@ -33,41 +32,39 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Category> Create(Category item)
+    public async Task<ActionResult<Category>> AddCategory(Category item)
     {
-        if (item == null)
-        {
-            return BadRequest();
-        }
-        item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        await _repository.AddAsync(item);
+        return CreatedAtAction(nameof(GetCategory), new { id = item.Id }, item);
     }
-
+    
     [HttpPut("{id}")]
-    public IActionResult Update(string id, Category item)
+    public async Task<IActionResult> PutCategory(string id, Category category)
     {
-        if (item == null || item.Id != id)
+        if (category.Id == null || id != category.Id)
         {
             return BadRequest();
         }
         
-        if (!_repository.Update(item))
+        var result = await _repository.UpdateAsync(category);
+        if (!result)
         {
             return NotFound();
         }
         
         return NoContent();
     }
-
+    
     [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
+    public async Task<IActionResult> DeleteCategory(string id)
     {
-        var item = _repository.Get(id);
+        var item = await _repository.GetAsync(id);
         if (item == null)
         {
             return NotFound();
         }
-        _repository.Remove(id);
+
+        await _repository.RemoveAsync(id);
         return NoContent();
     }
 }

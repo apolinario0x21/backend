@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using MongoDB.Driver;
-using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using MongoDB.Bson;
 
 namespace ProductStore.Models
@@ -15,35 +14,33 @@ namespace ProductStore.Models
             _categories = database.GetCollection<Category>("Categories");
         }
 
-        public IEnumerable<Category> GetAll()
+        public async Task<IEnumerable<Category>> GetAllAsync()
         {
-            return _categories.Find(_ => true).ToList();
+            return await _categories.Find(_ => true).ToListAsync();
         }
 
-        public Category? Get(string id)
+        public async Task<Category?> GetAsync(string id)
         {
-            return _categories.Find(p => p.Id == id).FirstOrDefault();
+            var filter = Builders<Category>.Filter.Eq(c => c.Id, id);
+            return await _categories.Find(filter).FirstOrDefaultAsync();
         }
 
-        public Category Add(Category item)
+        public async Task<Category> AddAsync(Category item)
         {
-
-            if (string.IsNullOrEmpty(item.Id))
-            {
-                item.Id = ObjectId.GenerateNewId().ToString();
-            }
-            _categories.InsertOne(item);
+            await _categories.InsertOneAsync(item);
             return item;
         }
 
-        public void Remove(string id)
+        public async Task RemoveAsync(string id)
         {
-            _categories.DeleteOne(p => p.Id == id);
+            var filter = Builders<Category>.Filter.Eq(c => c.Id, id);
+            await _categories.DeleteOneAsync(filter);
         }
 
-        public bool Update(Category item)
+        public async Task<bool> UpdateAsync(Category item)
         {
-            var result = _categories.ReplaceOne(p => p.Id == item.Id, item);
+            var filter = Builders<Category>.Filter.Eq(c => c.Id, item.Id);
+            var result = await _categories.ReplaceOneAsync(filter, item);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
     }

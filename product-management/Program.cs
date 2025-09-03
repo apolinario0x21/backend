@@ -8,6 +8,9 @@ using ProductStore.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.ComponentModel.DataAnnotations;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using ProductManagement.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Adicione as seguintes linhas no seu Program.cs
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
+
 
 // Configuração do MongoDB. Pega as informações de appsettings.json ou variáveis de ambiente.
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));

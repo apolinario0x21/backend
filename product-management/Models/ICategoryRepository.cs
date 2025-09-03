@@ -1,13 +1,14 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ProductStore.Models
 {
     public interface ICategoryRepository
     {
-        IEnumerable<Category> GetAll();
-        Category? Get(string id);
-        Category Add(Category item);
-        void Remove(string id);
-        bool Update(Category item);
+        Task<IEnumerable<Category>> GetAllAsync();
+        Task<Category?> GetAsync(string id);
+        Task<Category> AddAsync(Category item);
+        Task RemoveAsync(string id);
+        Task<bool> UpdateAsync(Category item);
     }
 }
