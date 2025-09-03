@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  webapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-management-webapi
+    ports:
+      - "5000:80"  # Mapeia a porta 5000 do host para a porta 80 do contêiner (HTTP)
+    environment:
+      - ASPNETCORE_URLS=http://+:80  # Define a URL do ASP.NET Core para HTTP
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    container_name: product-management-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
