@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ProductStore.Models;
 using System;
+using Swashbuckle.AspNetCore.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,7 +34,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Remova ou comente esta linha para desabilitar o redirecionamento para HTTPS
+// app.UseHttpsRedirection();
+
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
