@@ -2,10 +2,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using ProductStore.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,23 +17,22 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configuração do MongoDB. Pega as informações de appsettings.json ou variáveis de ambiente.
-var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
-
-// Adiciona uma verificação para garantir que as configurações foram lidas corretamente.
-if (mongoDbSettings is null)
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.AddSingleton<IMongoClient>(sp =>
 {
-    throw new InvalidOperationException("MongoDB configuration is missing.");
-}
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.DatabaseName);
+});
 
-// Injeta o cliente e o banco de dados do MongoDB.
-builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoDbSettings.ConnectionString));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings.DatabaseName));
-
-// Adiciona a injeção de dependência dos repositórios, passando o IMongoDatabase para o construtor.
-builder.Services.AddSingleton<IProductRepository, ProductRepository>(sp =>
-    new ProductRepository(sp.GetRequiredService<IMongoDatabase>()));
-builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>(sp =>
-    new CategoryRepository(sp.GetRequiredService<IMongoDatabase>()));
+// Adiciona a injeção de dependência dos repositórios
+builder.Services.AddSingleton<IProductRepository, ProductRepository>();
+builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
 
 var app = builder.Build();
 
@@ -49,6 +50,8 @@ app.Run();
 // Classe para as configurações do MongoDB
 public class MongoDbSettings
 {
+    [Required]
     public string? ConnectionString { get; set; }
+    [Required]
     public string? DatabaseName { get; set; }
 }

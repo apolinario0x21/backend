@@ -3,9 +3,9 @@ namespace ProductStore.Models
     public interface IProductRepository
     {
         IEnumerable<Product> GetAll();
-        Product? Get(int id);
+        Product? Get(string id);
         Product Add(Product item);
-        void Remove(int id);
+        void Remove(string id);
         bool Update(Product item);
     }
 }

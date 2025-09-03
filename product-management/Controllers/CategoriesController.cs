@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductStore.Models;
+using System.Collections.Generic;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,7 +20,7 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Category> GetById(int id)
+    public ActionResult<Category> GetById(string id)
     {
         var item = _repository.Get(id);
         if (item == null)
@@ -37,27 +38,27 @@ public class CategoriesController : ControllerBase
             return BadRequest();
         }
         item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        return CreatedAtAction(nameof(GetById), new { id = item.Id.ToString() }, item);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, Category item)
+    public IActionResult Update(string id, Category item)
     {
-        if (id != item.Id || item == null)
+        if (item == null || item.Id.ToString() != id)
         {
             return BadRequest();
         }
-        var existingItem = _repository.Get(id);
-        if (existingItem == null)
+        
+        if (!_repository.Update(item))
         {
             return NotFound();
         }
-        _repository.Update(item);
+        
         return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public IActionResult Delete(string id)
     {
         var item = _repository.Get(id);
         if (item == null)

@@ -1,6 +1,7 @@
-using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace ProductStore.Models
 {
@@ -18,20 +19,28 @@ namespace ProductStore.Models
             return _products.Find(_ => true).ToList();
         }
 
-        public Product? Get(int id)
+        public Product? Get(string id)
         {
-            return _products.Find(p => p.Id == id).FirstOrDefault();
+            if (!ObjectId.TryParse(id, out var objectId))
+            {
+                return null;
+            }
+            return _products.Find(p => p.Id == objectId).FirstOrDefault();
         }
-        
+
         public Product Add(Product item)
         {
             _products.InsertOne(item);
             return item;
         }
 
-        public void Remove(int id)
+        public void Remove(string id)
         {
-            _products.DeleteOne(p => p.Id == id);
+            if (!ObjectId.TryParse(id, out var objectId))
+            {
+                return;
+            }
+            _products.DeleteOne(p => p.Id == objectId);
         }
 
         public bool Update(Product item)

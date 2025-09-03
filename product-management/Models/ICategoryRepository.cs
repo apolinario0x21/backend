@@ -3,9 +3,9 @@ namespace ProductStore.Models
     public interface ICategoryRepository
     {
         IEnumerable<Category> GetAll();
-        Category? Get(int id);
+        Category? Get(string id);
         Category Add(Category item);
-        void Remove(int id);
+        void Remove(string id);
         bool Update(Category item);
     }
 }

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductStore.Models;
+using System.Collections.Generic;
+using MongoDB.Bson;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,7 +21,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Product> GetProduct(int id)
+    public ActionResult<Product> GetProduct(string id) 
     {
         Product? item = _repository.Get(id);
         if (item == null)
@@ -28,39 +30,32 @@ public class ProductsController : ControllerBase
         }
         return Ok(item);
     }
+    
 
-    [HttpGet("category/{category}")]
-    public ActionResult<IEnumerable<Product>> GetProductsByCategory(string category)
+   [HttpPut("{id}")]
+public IActionResult PutProduct(string id, [FromBody] Product product)
+{
+    // Tenta converter o ID da rota para um ObjectId
+    if (!ObjectId.TryParse(id, out ObjectId objectId))
     {
-        return Ok(_repository.GetAll().Where(
-            p => string.Equals(p.Category, category, StringComparison.OrdinalIgnoreCase)));
+        return BadRequest();
     }
 
-    [HttpPost]
-    public ActionResult<Product> PostProduct(Product item)
+    if (product.Id != objectId)
     {
-        item = _repository.Add(item);
-        return CreatedAtAction(nameof(GetProduct), new { id = item.Id }, item);
+        return BadRequest();
     }
 
-    [HttpPut("{id}")]
-    public IActionResult PutProduct(int id, Product product)
+    if (!_repository.Update(product))
     {
-        if (id != product.Id)
-        {
-            return BadRequest();
-        }
-
-        if (!_repository.Update(product))
-        {
-            return NotFound();
-        }
-
-        return NoContent();
+        return NotFound();
     }
 
+    return NoContent();
+}
+    
     [HttpDelete("{id}")]
-    public IActionResult DeleteProduct(int id)
+    public IActionResult DeleteProduct(string id) 
     {
         Product? item = _repository.Get(id);
         if (item == null)
@@ -70,5 +65,19 @@ public class ProductsController : ControllerBase
 
         _repository.Remove(id);
         return NoContent();
+    }
+    
+    [HttpPost]
+    public ActionResult<Product> PostProduct(Product item)
+    {
+        item = _repository.Add(item);
+        return CreatedAtAction(nameof(GetProduct), new { id = item.Id.ToString() }, item);
+    }
+    
+    [HttpGet("category/{category}")]
+    public ActionResult<IEnumerable<Product>> GetProductsByCategory(string category)
+    {
+        return Ok(_repository.GetAll().Where(
+            p => string.Equals(p.Category, category, StringComparison.OrdinalIgnoreCase)));
     }
 }

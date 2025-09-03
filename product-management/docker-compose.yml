@@ -11,6 +11,8 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=ProductDb
     depends_on:
       - mongodb
     networks:
