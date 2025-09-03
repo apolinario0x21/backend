@@ -25,18 +25,27 @@ namespace ProductStore.Models
 
         public Category Add(Category item)
         {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+            // O MongoDB gera o ObjectId automaticamente
             _categories.InsertOne(item);
             return item;
         }
 
         public void Remove(int id)
         {
-            _categories.DeleteOne(c => c.Id == id);
+            _categories.DeleteOne(p => p.Id == id);
         }
 
         public bool Update(Category item)
         {
-            var result = _categories.ReplaceOne(c => c.Id == item.Id, item);
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+            var result = _categories.ReplaceOne(p => p.Id == item.Id, item);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
     }

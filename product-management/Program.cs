@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
 using ProductStore.Models;
-using System;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,16 +14,24 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuração do MongoDB
+// Configuração do MongoDB. Pega as informações de appsettings.json ou variáveis de ambiente.
 var mongoDbSettings = builder.Configuration.GetSection("MongoDbSettings").Get<MongoDbSettings>();
 
-// Injeta o cliente e o banco de dados do MongoDB
-builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoDbSettings?.ConnectionString));
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings?.DatabaseName));
+// Adiciona uma verificação para garantir que as configurações foram lidas corretamente.
+if (mongoDbSettings is null)
+{
+    throw new InvalidOperationException("MongoDB configuration is missing.");
+}
 
-// Adiciona a injeção de dependência dos repositórios
-builder.Services.AddSingleton<IProductRepository, ProductRepository>();
-builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>();
+// Injeta o cliente e o banco de dados do MongoDB.
+builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoDbSettings.ConnectionString));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDbSettings.DatabaseName));
+
+// Adiciona a injeção de dependência dos repositórios, passando o IMongoDatabase para o construtor.
+builder.Services.AddSingleton<IProductRepository, ProductRepository>(sp =>
+    new ProductRepository(sp.GetRequiredService<IMongoDatabase>()));
+builder.Services.AddSingleton<ICategoryRepository, CategoryRepository>(sp =>
+    new CategoryRepository(sp.GetRequiredService<IMongoDatabase>()));
 
 var app = builder.Build();
 
@@ -33,9 +41,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Remova ou comente esta linha para desabilitar o redirecionamento para HTTPS
-// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 app.MapControllers();
