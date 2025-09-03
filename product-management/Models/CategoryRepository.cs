@@ -28,7 +28,7 @@ namespace ProductStore.Models
         public Category Add(Category item)
         {
 
-            if (item.Id == null)
+            if (string.IsNullOrEmpty(item.Id))
             {
                 item.Id = ObjectId.GenerateNewId().ToString();
             }
