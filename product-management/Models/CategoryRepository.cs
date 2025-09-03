@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Driver;
+using System;
+using MongoDB.Bson;
 
 namespace ProductStore.Models
 {
@@ -25,6 +27,11 @@ namespace ProductStore.Models
 
         public Category Add(Category item)
         {
+
+            if (item.Id == null)
+            {
+                item.Id = ObjectId.GenerateNewId().ToString();
+            }
             _categories.InsertOne(item);
             return item;
         }
